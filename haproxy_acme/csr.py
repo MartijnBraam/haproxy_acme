@@ -4,9 +4,8 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
 
 
-def create_csr_ec(key, country, state, locality, organisation, domains):
+def make_csr(key, country, state, locality, organisation, domains):
     csr = x509.CertificateSigningRequestBuilder().subject_name(x509.Name([
-        # Provide various details about who we are.
         x509.NameAttribute(NameOID.COUNTRY_NAME, country),
         x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, state),
         x509.NameAttribute(NameOID.LOCALITY_NAME, locality),
@@ -15,7 +14,7 @@ def create_csr_ec(key, country, state, locality, organisation, domains):
     ]))
 
     names = []
-    for domain in domains[1:]:
+    for domain in domains:
         names.append(x509.DNSName(domain))
 
     csr = csr.add_extension(
