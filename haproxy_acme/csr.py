@@ -1,4 +1,5 @@
 from cryptography import x509
+from cryptography.hazmat.primitives import serialization
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
@@ -23,3 +24,7 @@ def make_csr(key, country, state, locality, organisation, domains):
     )
 
     return csr.sign(key, hashes.SHA256(), default_backend())
+
+
+def to_der(csr):
+    return csr.public_bytes(serialization.Encoding.DER)

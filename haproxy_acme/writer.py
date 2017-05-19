@@ -1,3 +1,6 @@
+import base64
+import textwrap
+
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from cryptography.hazmat.backends import default_backend
@@ -12,9 +15,13 @@ def write_pem(path, data):
                 encryption_algorithm=serialization.NoEncryption()
             )
             handle.write(key)
-        else:
+        elif hasattr(data, 'public_bytes'):
             cert = data.public_bytes(serialization.Encoding.PEM)
             handle.write(cert)
+        elif isinstance(data, bytes):
+            cert = "\n".join(textwrap.wrap(base64.b64encode(data).decode('utf8'), 64))
+            cert = "-----BEGIN CERTIFICATE-----\n{}\n-----END CERTIFICATE-----\n".format(cert)
+            handle.write(cert.encode('utf-8'))
 
 
 def read_pem(path):

@@ -14,6 +14,7 @@ from cryptography.hazmat.primitives.hashes import SHA256
 
 from haproxy_acme.certbuilder import generate_cert
 from haproxy_acme.challenges.http01 import process_http01_challenge
+from haproxy_acme.csr import to_der
 from haproxy_acme.writer import write_pem
 
 nonce = None
@@ -101,12 +102,17 @@ def register(email, agreement):
     _account = response.headers['location']
 
 
+def _check_verification(response):
+    return response.json()['status'] == 'pending'
+
+
 def verify_domain(subjects, verify_directory, key_directory, dsn):
     dsn['domains'] = subjects
     (key_ec, csr_ec), (key_rsa, csr_rsa) = generate_cert(**dsn)
 
     key_prefix = os.path.join(key_directory, 'private', '{}.key'.format(subjects[0]))
     csr_prefix = os.path.join(key_directory, 'csr', '{}.csr'.format(subjects[0]))
+    crt_prefix = os.path.join(key_directory, 'live', '{}.crt'.format(subjects[0]))
 
     write_pem("{}.rsa".format(key_prefix), key_rsa)
     write_pem("{}.ecdsa".format(key_prefix), key_ec)
@@ -131,9 +137,28 @@ def verify_domain(subjects, verify_directory, key_directory, dsn):
         'resource': 'challenge',
         'keyAuthorization': keyauth
     })
-    print(response.json()['status'])
+    pending = _check_verification(response)
 
-    while True:
+    while pending:
         sleep(1)
         response = requests.get(url)
-        print(response.json()['status'])
+        pending = _check_verification(response)
+
+    url = server + '/acme/new-cert'
+
+    response = _acme_request_signed(url, {
+        'resource': 'new-cert',
+        'csr': _b64(to_der(csr_rsa))
+    })
+
+    cert_file = "{}.rsa".format(crt_prefix)
+    write_pem(cert_file, response.content)
+
+    response = _acme_request_signed(url, {
+        'resource': 'new-cert',
+        'csr': _b64(to_der(csr_ec))
+    })
+
+    cert_file = "{}.ecdsa".format(crt_prefix)
+    write_pem(cert_file, response.content)
+
