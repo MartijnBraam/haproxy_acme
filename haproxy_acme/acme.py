@@ -2,11 +2,16 @@ import base64
 import json
 
 import copy
+import os
+
 import requests
 import struct
 
 from cryptography.hazmat.primitives.asymmetric.padding import PSS, MGF1, PKCS1v15
 from cryptography.hazmat.primitives.hashes import SHA256
+
+from haproxy_acme.certbuilder import generate_cert
+from haproxy_acme.writer import write_pem
 
 nonce = None
 server = None
@@ -88,3 +93,17 @@ def register(email):
         ]
     })
     _account = response.headers['location']
+
+
+def verify_domain(subjects, verify_directory, key_directory, dsn):
+    dsn['domains'] = subjects
+    (key_ec, csr_ec), (key_rsa, csr_rsa) = generate_cert(**dsn)
+
+    key_prefix = os.path.join(key_directory, 'private', '{}.key'.format(subjects[0]))
+    csr_prefix = os.path.join(key_directory, 'csr', '{}.csr'.format(subjects[0]))
+
+    write_pem("{}.rsa".format(key_prefix), key_rsa)
+    write_pem("{}.ecdsa".format(key_prefix), key_ec)
+
+    write_pem("{}.rsa".format(csr_prefix), csr_rsa)
+    write_pem("{}.ecdsa".format(csr_prefix), csr_ec)

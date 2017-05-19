@@ -5,5 +5,11 @@ server = https://acme-staging.api.letsencrypt.org
 data-dir = /etc/acme
 email = lebrixitspecialtest@example.com
 
+[DEFAULT]
+country=NL
+state=Drenthe
+locality=Smilde
+organisation=BrixIT
+
 [brixit]
 domains=brixit.nl,www.brixit.nl

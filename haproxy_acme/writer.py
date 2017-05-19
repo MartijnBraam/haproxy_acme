@@ -12,10 +12,13 @@ def write_pem(path, data):
                 encryption_algorithm=serialization.NoEncryption()
             )
             handle.write(key)
+        else:
+            cert = data.public_bytes(serialization.Encoding.PEM)
+            handle.write(cert)
 
 
 def read_pem(path):
-    with open(path) as handle:
+    with open(path, 'rb') as handle:
         data = handle.read()
-    if 'PRIVATE KEY' in data:
+    if b'PRIVATE KEY' in data:
         return load_pem_private_key(data, None, default_backend())
