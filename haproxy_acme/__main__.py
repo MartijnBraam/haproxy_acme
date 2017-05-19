@@ -20,7 +20,8 @@ def process_domain(config, section):
         'organisation': config.get(section, 'organisation'),
     }
     domains = config.get(section, 'domains').split(',')
-    acme.verify_domain(domains, '/tmp', config.get('general', 'data-dir'), dsn)
+    verfiy_dir = config.get('general', 'verify-dir')
+    acme.verify_domain(domains, verfiy_dir, config.get('general', 'data-dir'), dsn)
 
 
 def run_config(config):
@@ -38,7 +39,7 @@ def run_config(config):
         key = make_private_key_rsa()
         write_pem(account_key, key)
     acme.key = key
-    acme.register(config.get('general', 'email'))
+    acme.register(config.get('general', 'email'), config.get('general', 'agreement'))
 
     for section in config.sections():
         if section not in ["general"]:

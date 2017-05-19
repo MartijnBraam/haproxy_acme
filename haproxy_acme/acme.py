@@ -11,6 +11,7 @@ from cryptography.hazmat.primitives.asymmetric.padding import PSS, MGF1, PKCS1v1
 from cryptography.hazmat.primitives.hashes import SHA256
 
 from haproxy_acme.certbuilder import generate_cert
+from haproxy_acme.challenges.http01 import process_http01_challenge
 from haproxy_acme.writer import write_pem
 
 nonce = None
@@ -82,12 +83,13 @@ def _acme_request_signed(url, payload):
     return response
 
 
-def register(email):
+def register(email, agreement):
     global _account
     url = server + "/acme/new-reg"
     response = _acme_request_signed(url, {
         "resource": "new-reg",
         "terms-of-service-agreed": True,
+        "agreement": agreement,
         "contact": [
             "mailto:{}".format(email)
         ]
@@ -107,3 +109,23 @@ def verify_domain(subjects, verify_directory, key_directory, dsn):
 
     write_pem("{}.rsa".format(csr_prefix), csr_rsa)
     write_pem("{}.ecdsa".format(csr_prefix), csr_ec)
+
+    url = server + '/acme/new-authz'
+    response = _acme_request_signed(url, {
+        'resource': 'new-authz',
+        'identifier': {
+            "type": "dns",
+            "value": subjects[0]
+        }
+    }).json()
+
+    challenge = [c for c in response['challenges'] if c['type'] == 'http-01'][0]
+    keyauth = process_http01_challenge(challenge, None, verify_directory)
+
+    url = challenge['uri']
+    response = _acme_request_signed(url, {
+        'resource': 'challenge',
+        'keyAuthorization': keyauth
+    })
+
+    pass
