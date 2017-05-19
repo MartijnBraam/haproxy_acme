@@ -4,6 +4,7 @@ import json
 
 import copy
 import os
+from time import sleep
 
 import requests
 import struct
@@ -130,5 +131,9 @@ def verify_domain(subjects, verify_directory, key_directory, dsn):
         'resource': 'challenge',
         'keyAuthorization': keyauth
     })
+    print(response.json()['status'])
 
-    print(response.json())
+    while True:
+        sleep(1)
+        response = requests.get(url)
+        print(response.json()['status'])
