@@ -128,4 +128,4 @@ def verify_domain(subjects, verify_directory, key_directory, dsn):
         'keyAuthorization': keyauth
     })
 
-    pass
+    print(response.json())
