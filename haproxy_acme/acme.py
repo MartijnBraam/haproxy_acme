@@ -1,4 +1,5 @@
 import base64
+import hashlib
 import json
 
 import copy
@@ -19,6 +20,7 @@ server = None
 key = None
 
 _account = None
+_thumbprint = None
 
 
 def _b64(data):
@@ -43,7 +45,7 @@ def _long_to_base64(n):
 
 
 def _acme_request_signed(url, payload):
-    global nonce
+    global nonce, _thumbprint
 
     if nonce is None:
         directory_url = server + "/directory"
@@ -65,6 +67,7 @@ def _acme_request_signed(url, payload):
         },
     }
     accountkey_json = json.dumps(header['jwk'], sort_keys=True, separators=(',', ':'))
+    _thumbprint = _b64(hashlib.sha256(accountkey_json.encode('utf8')).digest())
     header['nonce'] = nonce
     header['url'] = url
     protected = _b64(json.dumps(header).encode('utf8'))
@@ -120,7 +123,7 @@ def verify_domain(subjects, verify_directory, key_directory, dsn):
     }).json()
 
     challenge = [c for c in response['challenges'] if c['type'] == 'http-01'][0]
-    keyauth = process_http01_challenge(challenge, None, verify_directory)
+    keyauth = process_http01_challenge(challenge, _thumbprint, verify_directory)
 
     url = challenge['uri']
     response = _acme_request_signed(url, {
