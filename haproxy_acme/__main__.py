@@ -11,6 +11,7 @@ def run_config(config):
     if not os.path.isfile(account_key):
         key = make_private_key_rsa()
         write_pem(account_key, key)
+        acme_register(config.get('general', 'server'), key)
 
 
 if __name__ == '__main__':

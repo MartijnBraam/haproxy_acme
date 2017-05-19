@@ -25,5 +25,5 @@ def _acme_request_signed(url, payload, key):
     }
 
 
-def acme_register(server, csr):
+def acme_register(server, key):
     url = server + "/acme/new-reg"
