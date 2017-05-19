@@ -1,4 +1,6 @@
 from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
+from cryptography.hazmat.backends import default_backend
 
 
 def write_pem(path, data):
@@ -10,3 +12,10 @@ def write_pem(path, data):
                 encryption_algorithm=serialization.NoEncryption()
             )
             handle.write(key)
+
+
+def read_pem(path):
+    with open(path) as handle:
+        data = handle.read()
+    if 'PRIVATE KEY' in data:
+        return load_pem_private_key(data, None, default_backend())

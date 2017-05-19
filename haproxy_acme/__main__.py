@@ -3,7 +3,7 @@ import argparse
 import configparser
 import haproxy_acme.acme as acme
 from haproxy_acme.private import make_private_key_rsa
-from haproxy_acme.writer import write_pem
+from haproxy_acme.writer import write_pem, read_pem
 
 
 def run_config(config):
@@ -11,11 +11,13 @@ def run_config(config):
 
     acme.server = config.get('general', 'server')
 
-    if not os.path.isfile(account_key) or True:
+    if os.path.isfile(account_key):
+        key = read_pem(account_key)
+    else:
         key = make_private_key_rsa()
         write_pem(account_key, key)
-        acme.key = key
-        acme.register(config.get('general', 'email'))
+    acme.key = key
+    acme.register(config.get('general', 'email'))
 
 
 if __name__ == '__main__':
