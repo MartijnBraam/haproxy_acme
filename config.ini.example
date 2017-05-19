@@ -1,3 +1,9 @@
 [general]
-server = https://acme-v01.api.letsencrypt.org
+#server = https://acme-v01.api.letsencrypt.org
+server = https://acme-staging.api.letsencrypt.org
+
 data-dir = /etc/acme
+email = lebrixitspecialtest@example.com
+
+[brixit]
+domains=brixit.nl,www.brixit.nl
