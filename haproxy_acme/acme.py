@@ -155,6 +155,8 @@ def verify_domain(subjects, verify_directory, key_directory, dsn):
         'csr': _b64(to_der(csr_rsa))
     })
 
+    print(json.dumps(response.headers))
+
     cert_file = "{}.rsa".format(crt_prefix)
     write_pem(cert_file, response.content, append="{}.rsa".format(key_prefix))
 
