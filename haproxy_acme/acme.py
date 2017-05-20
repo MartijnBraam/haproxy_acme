@@ -155,14 +155,19 @@ def verify_domain(subjects, verify_directory, key_directory, dsn):
         'resource': 'new-cert',
         'csr': _b64(to_der(csr_rsa))
     })
-    print(response.status_code)
-    links = response.headers['Link']
-    print(links)
-    links = parse_header_links(links)
-    print(json.dumps(links))
+    if response.status_code > 299:
+        print('[new-cert] Error requesting the signed certificate')
+        print(response.content.decode())
+        return
+
+    intermediate_url = response.links['up']
+    intermediate_file = os.path.join(key_directory, 'intermediate.pem')
+    if not os.path.isfile(intermediate_file):
+        intermediate_response = requests.get(intermediate_url)
+        write_pem(intermediate_file, intermediate_response.content)
 
     cert_file = "{}.rsa".format(crt_prefix)
-    write_pem(cert_file, response.content, append="{}.rsa".format(key_prefix))
+    write_pem(cert_file, response.content, append=[intermediate_file, "{}.rsa".format(key_prefix)])
 
     response = _acme_request_signed(url, {
         'resource': 'new-cert',
@@ -170,4 +175,4 @@ def verify_domain(subjects, verify_directory, key_directory, dsn):
     })
 
     cert_file = "{}.ecdsa".format(crt_prefix)
-    write_pem(cert_file, response.content, append="{}.ecdsa".format(key_prefix))
+    write_pem(cert_file, response.content, append=[intermediate_file, "{}.ecdsa".format(key_prefix)])

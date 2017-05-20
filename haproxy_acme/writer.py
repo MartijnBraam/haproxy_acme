@@ -22,8 +22,9 @@ def write_pem(path, data, append=None):
             cert = "\n".join(textwrap.wrap(base64.b64encode(data).decode('utf8'), 64))
             cert = "-----BEGIN CERTIFICATE-----\n{}\n-----END CERTIFICATE-----\n".format(cert)
             if append is not None:
-                with open(append) as appendfile:
-                    cert += appendfile.read()
+                for ak in append:
+                    with open(ak) as appendfile:
+                        cert += appendfile.read()
             handle.write(cert.encode('utf-8'))
 
 
