@@ -1,6 +1,8 @@
 import os
 import argparse
 import configparser
+from datetime import datetime
+
 import haproxy_acme.acme as acme
 from haproxy_acme.private import make_private_key_rsa
 from haproxy_acme.writer import write_pem, read_pem
@@ -16,8 +18,11 @@ def get_cert_age(config, section):
     cert = config.get(section, 'domains').split(',')[0]
     key_dir = config.get('general', 'data-dir')
     crt = os.path.join(key_dir, 'live', '{}.crt.rsa'.format(cert))
-    pem = read_pem(crt)
-    print(pem)
+    certificate = read_pem(crt)
+    validity = certificate.not_valid_after
+    today = datetime.now()
+    diff = validity - today
+    print(diff)
     exit(1)
 
 
