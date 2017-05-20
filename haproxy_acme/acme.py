@@ -2,16 +2,14 @@ import base64
 import hashlib
 import json
 
-import copy
 import os
 from time import sleep
 
 import requests
 import struct
 
-from cryptography.hazmat.primitives.asymmetric.padding import PSS, MGF1, PKCS1v15
+from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15
 from cryptography.hazmat.primitives.hashes import SHA256
-from requests.utils import parse_header_links
 
 from haproxy_acme.certbuilder import generate_cert
 from haproxy_acme.challenges.http01 import process_http01_challenge
@@ -107,6 +105,30 @@ def _check_verification(response):
     return response.json()['status'] == 'pending'
 
 
+def _new_authz(subject, directory):
+    url = server + '/acme/new-authz'
+    response = _acme_request_signed(url, {
+        'resource': 'new-authz',
+        'identifier': {
+            "type": "dns",
+            "value": subject
+        }
+    }).json()
+    challenge = [c for c in response['challenges'] if c['type'] == 'http-01'][0]
+    keyauth = process_http01_challenge(challenge, _thumbprint, directory)
+    url = challenge['uri']
+    response = _acme_request_signed(url, {
+        'resource': 'challenge',
+        'keyAuthorization': keyauth
+    })
+    pending = _check_verification(response)
+
+    while pending:
+        sleep(1)
+        response = requests.get(url)
+        pending = _check_verification(response)
+
+
 def verify_domain(subjects, verify_directory, key_directory, dsn):
     dsn['domains'] = subjects
 
@@ -125,29 +147,8 @@ def verify_domain(subjects, verify_directory, key_directory, dsn):
     write_pem("{}.rsa".format(csr_prefix), csr_rsa)
     write_pem("{}.ecdsa".format(csr_prefix), csr_ec)
 
-    url = server + '/acme/new-authz'
-    response = _acme_request_signed(url, {
-        'resource': 'new-authz',
-        'identifier': {
-            "type": "dns",
-            "value": subjects[0]
-        }
-    }).json()
-
-    challenge = [c for c in response['challenges'] if c['type'] == 'http-01'][0]
-    keyauth = process_http01_challenge(challenge, _thumbprint, verify_directory)
-
-    url = challenge['uri']
-    response = _acme_request_signed(url, {
-        'resource': 'challenge',
-        'keyAuthorization': keyauth
-    })
-    pending = _check_verification(response)
-
-    while pending:
-        sleep(1)
-        response = requests.get(url)
-        pending = _check_verification(response)
+    for subject in subjects:
+        _new_authz(subject, verify_directory)
 
     url = server + '/acme/new-cert'
 
