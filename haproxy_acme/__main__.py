@@ -18,6 +18,8 @@ def get_cert_age(config, section):
     cert = config.get(section, 'domains').split(',')[0]
     key_dir = config.get('general', 'data-dir')
     crt = os.path.join(key_dir, 'live', '{}.crt.rsa'.format(cert))
+    if not os.path.isfile(crt):
+        return 0
     certificate = read_pem(crt)
     validity = certificate.not_valid_after
     today = datetime.now()
