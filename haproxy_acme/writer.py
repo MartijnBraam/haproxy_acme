@@ -32,6 +32,9 @@ def read_pem(path):
     with open(path, 'rb') as handle:
         data = handle.read()
     if b'BEGIN CERTIFICATE' in data:
+        if b'PRIVATE KEY' in data:
+            parts = data.split(b'-----END CERTIFICATE-----')
+            data = parts[0] + b'-----END CERTIFICATE-----'
         return load_pem_public_key(data, default_backend())
     elif b'PRIVATE KEY' in data:
         return load_pem_private_key(data, None, default_backend())
