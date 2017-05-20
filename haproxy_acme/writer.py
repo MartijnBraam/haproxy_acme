@@ -34,7 +34,7 @@ def read_pem(path):
     if b'BEGIN CERTIFICATE' in data:
         if b'PRIVATE KEY' in data:
             parts = data.split(b'-----END CERTIFICATE-----')
-            data = parts[0] + b'-----END CERTIFICATE-----'
+            data = parts[0] + b'-----END CERTIFICATE-----\n'
         print(data)
         return load_pem_public_key(data, default_backend())
     elif b'PRIVATE KEY' in data:
