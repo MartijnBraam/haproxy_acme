@@ -6,7 +6,7 @@ from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from cryptography.hazmat.backends import default_backend
 
 
-def write_pem(path, data):
+def write_pem(path, data, append=None):
     with open(path, 'wb') as handle:
         if hasattr(data, 'private_bytes'):
             key = data.private_bytes(
@@ -21,6 +21,9 @@ def write_pem(path, data):
         elif isinstance(data, bytes):
             cert = "\n".join(textwrap.wrap(base64.b64encode(data).decode('utf8'), 64))
             cert = "-----BEGIN CERTIFICATE-----\n{}\n-----END CERTIFICATE-----\n".format(cert)
+            if append is not None:
+                with open(append, 'rb') as appendfile:
+                    cert += appendfile.read()
             handle.write(cert.encode('utf-8'))
 
 

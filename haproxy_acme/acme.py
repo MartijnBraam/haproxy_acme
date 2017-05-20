@@ -108,11 +108,15 @@ def _check_verification(response):
 
 def verify_domain(subjects, verify_directory, key_directory, dsn):
     dsn['domains'] = subjects
-    (key_ec, csr_ec), (key_rsa, csr_rsa) = generate_cert(**dsn)
 
     key_prefix = os.path.join(key_directory, 'private', '{}.key'.format(subjects[0]))
     csr_prefix = os.path.join(key_directory, 'csr', '{}.csr'.format(subjects[0]))
     crt_prefix = os.path.join(key_directory, 'live', '{}.crt'.format(subjects[0]))
+
+    if os.path.isfile("{}.rsa".format(key_prefix)):
+        dsn['key'] = key_prefix
+
+    (key_ec, csr_ec), (key_rsa, csr_rsa) = generate_cert(**dsn)
 
     write_pem("{}.rsa".format(key_prefix), key_rsa)
     write_pem("{}.ecdsa".format(key_prefix), key_ec)
@@ -152,7 +156,7 @@ def verify_domain(subjects, verify_directory, key_directory, dsn):
     })
 
     cert_file = "{}.rsa".format(crt_prefix)
-    write_pem(cert_file, response.content)
+    write_pem(cert_file, response.content, append="{}.rsa".format(key_prefix))
 
     response = _acme_request_signed(url, {
         'resource': 'new-cert',
@@ -160,5 +164,4 @@ def verify_domain(subjects, verify_directory, key_directory, dsn):
     })
 
     cert_file = "{}.ecdsa".format(crt_prefix)
-    write_pem(cert_file, response.content)
-
+    write_pem(cert_file, response.content, append="{}.ecdsa".format(key_prefix))
