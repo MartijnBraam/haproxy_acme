@@ -11,6 +11,7 @@ import struct
 
 from cryptography.hazmat.primitives.asymmetric.padding import PSS, MGF1, PKCS1v15
 from cryptography.hazmat.primitives.hashes import SHA256
+from requests.utils import parse_header_links
 
 from haproxy_acme.certbuilder import generate_cert
 from haproxy_acme.challenges.http01 import process_http01_challenge
@@ -154,8 +155,8 @@ def verify_domain(subjects, verify_directory, key_directory, dsn):
         'resource': 'new-cert',
         'csr': _b64(to_der(csr_rsa))
     })
-
-    print(json.dumps(response.headers))
+    links = parse_header_links(response.headers['Link'])
+    print(json.dumps(links))
 
     cert_file = "{}.rsa".format(crt_prefix)
     write_pem(cert_file, response.content, append="{}.rsa".format(key_prefix))
