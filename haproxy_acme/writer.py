@@ -2,8 +2,9 @@ import base64
 import textwrap
 
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.serialization import load_pem_private_key, load_pem_public_key, load_der_public_key
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from cryptography.hazmat.backends import default_backend
+from cryptography.x509 import load_pem_x509_certificate
 
 
 def write_pem(path, data, append=None):
@@ -34,11 +35,7 @@ def read_pem(path):
     if b'BEGIN CERTIFICATE' in data:
         if b'PRIVATE KEY' in data:
             parts = data.split(b'-----END CERTIFICATE-----')
-            data = parts[0] + b'-----END CERTIFICATE-----'
-        data = data.decode()
-        b64data = '\n'.join(data.splitlines()[1:-1])
-        print(b64data)
-        derdata = base64.b64decode(b64data)
-        return load_der_public_key(derdata, default_backend())
+            data = parts[0] + b'-----END CERTIFICATE-----\n'
+        return load_pem_x509_certificate(data, default_backend())
     elif b'PRIVATE KEY' in data:
         return load_pem_private_key(data, None, default_backend())
