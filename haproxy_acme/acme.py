@@ -160,7 +160,7 @@ def verify_domain(subjects, verify_directory, key_directory, dsn):
         print(response.content.decode())
         return
 
-    intermediate_url = response.links['up']
+    intermediate_url = response.links['up']['url']
     intermediate_file = os.path.join(key_directory, 'intermediate.pem')
     if not os.path.isfile(intermediate_file):
         intermediate_response = requests.get(intermediate_url)
