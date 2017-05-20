@@ -37,6 +37,7 @@ def read_pem(path):
             data = parts[0] + b'-----END CERTIFICATE-----'
         data = data.decode()
         b64data = '\n'.join(data.splitlines()[1:-1])
+        print(b64data)
         derdata = base64.b64decode(b64data)
         return load_der_public_key(derdata, default_backend())
     elif b'PRIVATE KEY' in data:
