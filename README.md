@@ -24,3 +24,11 @@ $ mkdir /etc/acme
 $ cp config.ini.example /etc/acme/config.ini
 $ edit /etc/acme/config.ini
 ```
+
+## Running
+
+```bash
+$ python3 -m haproxy_acme /etc/acme/config.ini
+```
+
+This will request/update certificates if necessary, you can run this command with cron daily
