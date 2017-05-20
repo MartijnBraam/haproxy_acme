@@ -22,14 +22,14 @@ def get_cert_age(config, section):
     validity = certificate.not_valid_after
     today = datetime.now()
     diff = validity - today
-    print(diff)
-    exit(1)
+    return diff.days
 
 
 def process_domain(config, section):
-
     min_age = int(config.get('general', 'renewal-age', fallback="20"))
     age = get_cert_age(config, section)
+    if age > min_age:
+        return
 
     dsn = {
         'country': config.get(section, 'country'),
