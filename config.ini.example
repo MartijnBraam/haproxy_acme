@@ -1,10 +1,18 @@
 [general]
-#server = https://acme-v01.api.letsencrypt.org
-server = https://acme-staging.api.letsencrypt.org
+# Choose your ACME provider here
+server = https://acme-v01.api.letsencrypt.org
+#server = https://acme-staging.api.letsencrypt.org
 
+# Your certificates will be stored in $(data-dir)/live
 data-dir = /etc/acme
+
+# Configure your webserver to host .well-known/acme-challenge on every domain here
 verify-dir = /var/www/verify/.well-known/acme-challenge
+
+# E-mail adres for your ACME registration (skipped if you put an existing account.key in the data-dir)
 email = lebrixitspeciltest@example.com
+
+# The current agreement that you accept
 agreement = https://letsencrypt.org/documents/LE-SA-v1.1.1-August-1-2016.pdf
 
 # Number of days left before renewing
