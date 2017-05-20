@@ -2,7 +2,7 @@ import base64
 import textwrap
 
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.serialization import load_pem_private_key
+from cryptography.hazmat.primitives.serialization import load_pem_private_key, load_pem_public_key
 from cryptography.hazmat.backends import default_backend
 
 
@@ -31,5 +31,7 @@ def write_pem(path, data, append=None):
 def read_pem(path):
     with open(path, 'rb') as handle:
         data = handle.read()
-    if b'PRIVATE KEY' in data:
+    if b'BEGIN CERTIFICATE' in data:
+        return load_pem_public_key(data, default_backend())
+    elif b'PRIVATE KEY' in data:
         return load_pem_private_key(data, None, default_backend())

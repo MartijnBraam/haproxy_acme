@@ -12,7 +12,20 @@ def _ensure_dir(config, name):
         os.makedirs(full)
 
 
+def get_cert_age(config, section):
+    cert = config.get(section, 'domains').split(',')[0]
+    key_dir = config.get('general', 'data-dir')
+    crt = os.path.join(key_dir, 'live', '{}.crt.rsa'.format(cert))
+    pem = read_pem(crt)
+    print(pem)
+    exit(1)
+
+
 def process_domain(config, section):
+
+    min_age = int(config.get('general', 'renewal-age', fallback="20"))
+    age = get_cert_age(config, section)
+
     dsn = {
         'country': config.get(section, 'country'),
         'state': config.get(section, 'state'),
