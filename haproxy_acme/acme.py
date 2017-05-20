@@ -155,7 +155,10 @@ def verify_domain(subjects, verify_directory, key_directory, dsn):
         'resource': 'new-cert',
         'csr': _b64(to_der(csr_rsa))
     })
-    links = parse_header_links(response.headers['Link'])
+    print(response.status_code)
+    links = response.headers['Link']
+    print(links)
+    links = parse_header_links(links)
     print(json.dumps(links))
 
     cert_file = "{}.rsa".format(crt_prefix)
